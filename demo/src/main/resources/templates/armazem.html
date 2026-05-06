@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestão de Armazém</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <h1 class="text-center mb-5">Controle de Stock Automático</h1>
+
+        <!-- Formulário de Entrada -->
+        <div class="card p-4 mb-4 shadow-sm">
+            <h4>Entrada de Novo Lote</h4>
+            <form action="/receber" method="post" class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" name="nome" class="form-control" placeholder="Nome do Produto" required>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" name="quantidade" class="form-control" placeholder="Qtd" required>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Registrar</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="row text-center">
+            <!-- LISTA -->
+            <div class="col-md-4">
+                <div class="card h-100 border-primary">
+                    <div class="card-header bg-primary text-white">Inventário (List)</div>
+                    <ul class="list-group list-group-flush">
+                        <li th:each="p : ${produtos}" class="list-group-item" th:text="${p.nome} + ' (' + ${p.quantidade} + ')' "></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- FILA -->
+            <div class="col-md-4">
+                <div class="card h-100 border-success">
+                    <div class="card-header bg-success text-white">Cargas para Saída (Queue)</div>
+                    <ul class="list-group list-group-flush">
+                        <li th:each="f : ${expedicao}" class="list-group-item text-success fw-bold" th:text="${f.nome}"></li>
+                    </ul>
+                    <form action="/despachar" method="post" class="p-3">
+                        <button class="btn btn-outline-success btn-sm w-100">Despachar Próximo Camião</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- PILHA -->
+            <div class="col-md-4">
+                <div class="card h-100 border-danger">
+                    <div class="card-header bg-danger text-white">Devoluções (Stack)</div>
+                    <ul class="list-group list-group-flush">
+                        <li th:each="d : ${devolucoes}" class="list-group-item text-danger fw-bold" th:text="${d.nome}"></li>
+                    </ul>
+                    <form action="/inspeccionar" method="post" class="p-3 mt-auto">
+                        <button class="btn btn-outline-danger btn-sm w-100 mb-2">Processar Topo da Pilha</button>
+                    </form>
+                    <form action="/devolver" method="post" class="px-3 pb-3">
+                        <input type="text" name="nome" placeholder="Nome para devolver" class="form-control form-control-sm mb-1">
+                        <button class="btn btn-danger btn-sm w-100">Simular Nova Devolução</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
