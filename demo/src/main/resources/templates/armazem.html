@@ -2,98 +2,90 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema de Armazém - Estruturas de Dados</title>
+    <title>Stock Manager - Pro</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .card-body { min-height: 300px; max-height: 400px; overflow-y: auto; }
-        .highlight { background-color: #f8f9fa; border-left: 5px solid; }
-    </style>
 </head>
 <body class="bg-light">
 
-<div class="container py-4">
-    <h2 class="text-center mb-4">Gestão de Stock: Lista, Fila e Pilha</h2>
+<div class="container py-5">
+    <h2 class="text-center mb-4">Gestão de Armazém</h2>
 
-    <!-- Seção de Entrada de Dados -->
-    <div class="card mb-4 shadow-sm">
-        <div class="card-body" style="min-height: auto;">
+    <!-- Form de Cadastro -->
+    <div class="card mb-5 shadow-sm">
+        <div class="card-body">
             <form action="/lista/adicionar" method="post" class="row g-3">
-                <div class="col-md-5">
-                    <input type="text" name="nome" class="form-control" placeholder="Nome do Produto" required>
+                <div class="col-md-7">
+                    <input type="text" name="nome" class="form-control" placeholder="Produto (ex: Computador)" required>
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="qtd" class="form-control" value="1" min="1">
                 </div>
                 <div class="col-md-3">
-                    <input type="number" name="qtd" class="form-control" placeholder="Quantidade" required>
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-dark w-100">Registrar no Inventário (LIST)</button>
+                    <button class="btn btn-primary w-100">Registrar Entrada</button>
                 </div>
             </form>
         </div>
     </div>
 
     <div class="row g-4">
-        <!-- COLUNA LISTA -->
+        <!-- LISTA -->
         <div class="col-md-4">
-            <div class="card shadow-sm border-primary">
-                <div class="card-header bg-primary text-white"><b>LISTA</b> (Inventário Total)</div>
-                <div class="card-body">
-                    <ul class="list-group">
-                        <li th:each="p, stat : ${produtos}" class="list-group-item d-flex justify-content-between align-items-center">
-                            <span th:text="${p.nome} + ' (x' + ${p.quantidade} + ')' "></span>
-                            <form action="/lista/remover" method="post">
-                                <input type="hidden" name="index" th:value="${stat.index}">
-                                <button class="btn btn-sm btn-danger">X</button>
-                            </form>
-                        </li>
-                    </ul>
-                </div>
-                <div class="card-footer small text-muted">Acesso aleatório: remove qualquer um.</div>
+            <div class="card h-100 shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">Inventário (List)</div>
+                <ul class="list-group list-group-flush">
+                    <li th:each="p, stat : ${produtos}" class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>
+                            <strong th:text="${p.nome}"></strong> 
+                            <span class="badge bg-info text-dark ms-2" th:text="${p.getQuantidade()}"></span>
+                        </span>
+                        <form action="/lista/remover" method="post">
+                            <input type="hidden" name="index" th:value="${stat.index}">
+                            <button class="btn btn-sm btn-outline-danger">Retirar 1</button>
+                        </form>
+                    </li>
+                </ul>
             </div>
         </div>
 
-        <!-- COLUNA FILA -->
+        <!-- FILA -->
         <div class="col-md-4">
-            <div class="card shadow-sm border-success">
-                <div class="card-header bg-success text-white"><b>FILA</b> (Camiões p/ Saída)</div>
+            <div class="card h-100 shadow-sm border-success">
+                <div class="card-header bg-success text-white">Expedição (Queue - FIFO)</div>
                 <div class="card-body">
-                    <p class="small">Próximo a sair: <strong th:text="${proximoFila != null ? proximoFila.nome : 'Vazia'}"></strong></p>
+                    <form action="/fila/entrar" method="post" class="mb-3">
+                        <div class="input-group input-group-sm">
+                            <input type="text" name="nome" class="form-control" placeholder="Item p/ Camião">
+                            <button class="btn btn-success">Add</button>
+                        </div>
+                    </form>
                     <ul class="list-group mb-3">
-                        <li th:each="f : ${fila}" class="list-group-item list-group-item-success" th:text="${f.nome}"></li>
+                        <li th:each="f : ${fila}" class="list-group-item" th:text="${f.nome}"></li>
                     </ul>
-                    <form action="/fila/entrar" method="post" class="mb-2">
-                        <div class="input-group input-group-sm">
-                            <input type="text" name="nome" class="form-control" placeholder="Produto p/ Fila">
-                            <button class="btn btn-success">+</button>
-                        </div>
-                    </form>
-                    <form action="/fila/despachar" method="post">
-                        <button class="btn btn-outline-success btn-sm w-100">Despachar (Poll)</button>
+                    <form action="/fila/despachar" method="post" th:if="${!fila.isEmpty()}">
+                        <button class="btn btn-outline-success btn-sm w-100">Despachar Primeiro</button>
                     </form>
                 </div>
-                <div class="card-footer small text-muted">FIFO: O primeiro que entra é o primeiro que sai.</div>
             </div>
         </div>
 
-        <!-- COLUNA PILHA -->
+        <!-- PILHA -->
         <div class="col-md-4">
-            <div class="card shadow-sm border-warning">
-                <div class="card-header bg-warning text-dark"><b>PILHA</b> (Devoluções)</div>
+            <div class="card h-100 shadow-sm border-warning">
+                <div class="card-header bg-warning">Devoluções (Stack - LIFO)</div>
                 <div class="card-body">
-                    <p class="small">No topo (Inspeção): <strong th:text="${topoPilha != null ? topoPilha.nome : 'Vazia'}"></strong></p>
-                    <ul class="list-group mb-3 d-flex flex-column-reverse"> <!-- Flex-column-reverse para simular pilha visualmente -->
-                        <li th:each="d : ${pilha}" class="list-group-item list-group-item-warning" th:text="${d.nome}"></li>
-                    </ul>
-                    <form action="/pilha/empilhar" method="post" class="mb-2">
+                    <form action="/pilha/empilhar" method="post" class="mb-3">
                         <div class="input-group input-group-sm">
-                            <input type="text" name="nome" class="form-control" placeholder="Produto Devolvido">
-                            <button class="btn btn-warning">+</button>
+                            <input type="text" name="nome" class="form-control" placeholder="Item c/ Defeito">
+                            <button class="btn btn-warning">Add</button>
                         </div>
                     </form>
-                    <form action="/pilha/processar" method="post">
-                        <button class="btn btn-outline-warning btn-sm w-100 text-dark">Processar Topo (Pop)</button>
+                    <ul class="list-group mb-3 d-flex flex-column-reverse">
+                        <li th:each="d : ${pilha}" class="list-group-item" th:text="${d.nome}"></li>
+                    </ul>
+                    <form action="/pilha/processar" method="post" th:if="${!pilha.isEmpty()}">
+                        <button class="btn btn-outline-dark btn-sm w-100">Tratar Topo</button>
                     </form>
                 </div>
-                <div class="card-footer small text-muted">LIFO: O último que entra é o primeiro que sai.</div>
             </div>
         </div>
     </div>
